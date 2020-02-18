@@ -75,8 +75,12 @@ COPY --from=build /c3po/pcrf/tssf/bin /bin
 
 ## Stage hssdb
 FROM cassandra:2.1.20 as hssdb
+# workaround: https transport is missing in cassandraDB image 
+# hence disabling https repo until after apt-transport-https installation
+RUN mv /etc/apt/sources.list.d/cassandra.list /
 RUN apt-get update && apt-get -y install \
-      dnsutils && \
-    rm -rf /var/lib/apt/lists/*
+      dnsutils apt-transport-https
+RUN mv /cassandra.list /etc/apt/sources.list.d/cassandra.list
+RUN apt-get update && rm -rf /var/lib/apt/lists/* 
 COPY hss/db/oai_db.cql /opt/c3po/hssdb/oai_db.cql
 COPY db_docs/data_provisioning_users.sh db_docs/data_provisioning_mme.sh /bin/
